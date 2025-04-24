@@ -1,0 +1,63 @@
+version: "3.9"
+
+volumes:
+  pg_data_production:
+  static_volume:
+  media_volume:
+
+networks:
+  foodgram_network:
+    driver: bridge
+
+services:
+  db:
+    container_name: foodgram_db
+    image: postgres:13
+    env_file: .env
+    volumes:
+      - pg_data_production:/var/lib/postgresql/data
+    networks:
+      - foodgram_network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    image: avbdev999/foodgram_backend:latest
+    env_file: .env
+    volumes:
+      - static_volume:/backend_static
+      - media_volume:/app/media
+    networks:
+      - foodgram_network
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: always
+
+  frontend:
+    image: avbdev999/foodgram_frontend:latest
+    env_file: .env
+    volumes:
+      - static_volume:/app/result_build/build/.
+    networks:
+      - foodgram_network
+
+  gateway:
+    image: avbdev999/foodgram_gateway:latest
+    env_file: .env
+    ports:
+      - "8000:80"
+    volumes:
+      - static_volume:/staticfiles/
+      - media_volume:/var/www/foodgram/media/
+    networks:
+      - foodgram_network
+    depends_on:
+      - backend
+      - frontend
+      - db
+    restart: always
