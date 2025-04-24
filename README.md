@@ -97,7 +97,6 @@ sudo docker compose -f docker-compose.prod.yml exec backend python manage.py cre
 1. Клонируйте репозиторий:
 
 ```bash
-git clone git@github.com:avb-dev/Foodgram.git
 ```
 
 2. Настройте окружение:
